@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Currículo de José Ernesto Constantino Bule – Single Page Application em Vue.js">
+  <title>José Bule – Currículo</title>
+
+  <!-- Contactos das redes sociais (Font Awesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- Vue e Vue Router incluídos por CDN, sem necessidade de build -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-router@4.4.3/dist/vue-router.global.prod.js"></script>
+
+  <style>
+    /* ---------- Variáveis de cor ---------- */
+    :root {
+      --verde: #1f5f4a;
+      --verde-claro: #e7f1ec;
+      --areia: #f7f4ee;
+      --texto: #22302b;
+      --texto-suave: #5d6b66;
+      --borda: #dfe5e1;
+      --branco: #ffffff;
+      --sombra: 0 4px 18px rgba(20, 50, 40, 0.08);
+      --raio: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--texto);
+      background: var(--areia);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #app { display: flex; flex-direction: column; min-height: 100vh; }
+
+    a { color: var(--verde); }
+
+    /* ---------- Cabeçalho e menu ---------- */
+    .cabecalho {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--branco);
+      border-bottom: 1px solid var(--borda);
+    }
+
+    .cabecalho .conteudo {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .marca {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--texto);
+      font-weight: 600;
+    }
+
+    .marca .iniciais {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--verde);
+      color: var(--branco);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .menu {
+      margin-left: auto;
+      display: flex;
+      gap: 4px;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: var(--texto-suave);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .menu a:hover { background: var(--verde-claro); color: var(--verde); }
+
+    .menu a.router-link-exact-active {
+      background: var(--verde);
+      color: var(--branco);
+    }
+
+    .botao-menu {
+      display: none;
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      font-size: 20px;
+      width: 42px;
+      height: 42px;
+      cursor: pointer;
+      color: var(--texto);
+    }
+
+    /* ---------- Área principal ---------- */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 40px 20px 56px;
+    }
+
+    h1, h2, h3 { line-height: 1.25; margin: 0 0 12px; }
+    h2.titulo { font-size: 30px; }
+    .subtitulo { color: var(--texto-suave); margin: 0 0 28px; }
+
+    /* ---------- Início ---------- */
+    .apresentacao {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+
+    .foto {
+      flex: 0 0 140px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: var(--verde);
+      color: var(--branco);
+      display: grid;
+      place-items: center;
+      font-size: 46px;
+      font-weight: 700;
+      overflow: hidden;
+    }
+
+    .foto img { width: 100%; height: 100%; object-fit: cover; }
+
+    .apresentacao h1 { font-size: 34px; margin-bottom: 4px; }
+    .apresentacao .cargo { color: var(--verde); font-weight: 600; margin: 0 0 4px; }
+    .apresentacao .local { color: var(--texto-suave); margin: 0 0 14px; font-size: 15px; }
+
+    .botao {
+      display: inline-block;
+      background: var(--verde);
+      color: var(--branco);
+      text-decoration: none;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .botao:hover { opacity: 0.9; }
+
+    .botao.secundario {
+      background: transparent;
+      color: var(--verde);
+      border: 1px solid var(--verde);
+    }
+
+    /* ---------- Cartões ---------- */
+    .grelha {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .cartao {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 24px;
+      box-shadow: var(--sombra);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--texto);
+      transition: transform 0.15s ease;
+    }
+
+    a.cartao:hover, button.cartao:hover { transform: translateY(-3px); }
+
+    button.cartao {
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .cartao .icone {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: var(--verde-claro);
+      color: var(--verde);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+
+    .cartao h3 { margin: 6px 0 0; font-size: 19px; }
+    .cartao p { margin: 0; color: var(--texto-suave); font-size: 15px; }
+    .cartao .ligacao { margin-top: auto; padding-top: 8px; color: var(--verde); font-weight: 600; font-size: 14px; }
+
+    /* ---------- Quem Sou Eu ---------- */
+    .duas-colunas {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .texto p { margin: 0 0 16px; }
+
+    .resumo {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 22px;
+      box-shadow: var(--sombra);
+    }
+
+    .resumo h3 { font-size: 17px; }
+
+    .resumo dl { margin: 0; }
+    .resumo dt { font-size: 13px; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 12px; }
+    .resumo dd { margin: 2px 0 0; }
+
+    /* ---------- Janela modal ---------- */
+    .fundo-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 30, 25, 0.55);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal {
+      background: var(--branco);
+      border-radius: var(--raio);
+      max-width: 540px;
+      width: 100%;
+      padding: 28px;
+      position: relative;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal .fechar {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--borda);
+      background: var(--branco);
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--texto-suave);
+    }
+
+    .modal .topo { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; padding-right: 40px; }
+    .modal .topo h3 { margin: 0; }
+    .icone-modal {
+      flex: 0 0 46px;
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: var(--verde-claro);
+      color: var(--verde);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+    .modal ul { padding-left: 20px; margin: 12px 0 22px; }
+    .modal li { margin-bottom: 6px; }
+    .modal .acoes { text-align: right; }
+
+    .aparecer-enter-active, .aparecer-leave-active { transition: opacity 0.2s ease; }
+    .aparecer-enter-from, .aparecer-leave-to { opacity: 0; }
+
+    /* ---------- Rodapé ---------- */
+    .rodape {
+      background: var(--verde);
+      color: #d9e8e1;
+      text-align: center;
+      padding: 26px 20px;
+    }
+
+    .rodape .redes {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rodape .redes a {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--branco);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      text-decoration: none;
+    }
+
+    .rodape .redes a:hover { background: var(--branco); color: var(--verde); }
+    .rodape p { margin: 0; font-size: 14px; }
+
+    /* ---------- Telemóvel ---------- */
+    @media (max-width: 760px) {
+      .botao-menu { display: block; }
+
+      .menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--branco);
+        border-bottom: 1px solid var(--borda);
+        flex-direction: column;
+        padding: 8px 12px 12px;
+      }
+
+      .menu.aberto { display: flex; }
+
+      .apresentacao { flex-direction: column; text-align: center; gap: 18px; }
+      .grelha, .duas-colunas { grid-template-columns: 1fr; }
+      h2.titulo { font-size: 26px; }
+      main { padding-top: 28px; }
+    }
+
+    .cartao .imagem {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+
+    .modal .credito {
+      font-size: 12px;
+      color: var(--texto-suave);
+      margin: -10px 0 18px;
+    }
+
+    .cartao .numero {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--texto-suave);
+      letter-spacing: 0.06em;
+    }
+
+    .cartao .cabeca { display: flex; align-items: center; justify-content: space-between; }
+
+    .modal:focus { outline: none; }
+
+    .botao-topo {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: none;
+      background: var(--verde);
+      color: var(--branco);
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: var(--sombra);
+      z-index: 20;
+    }
+
+    .botao-topo:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+
+  <!-- Elemento raiz da instância Vue -->
+  <div id="app">
+
+    <!-- Cabeçalho: fixo em todas as vistas -->
+    <header class="cabecalho">
+      <div class="conteudo">
+        <router-link :to="{ name: 'inicio' }" class="marca" @click="fecharMenu">
+          <span class="iniciais">{{ cv.iniciais }}</span>
+          <!-- Propriedade calculada -->
+          <span>{{ nomeCurto }}</span>
+        </router-link>
+
+        <!-- Manipulador de eventos com abreviação @ -->
+        <button class="botao-menu" @click="alternarMenu"
+                :aria-expanded="menuAberto" aria-label="Abrir ou fechar o menu">
+          <i :class="menuAberto ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
+        </button>
+
+        <!-- Interligação de classes com sintaxe de objeto -->
+        <nav class="menu" :class="{ aberto: menuAberto }" aria-label="Menu principal">
+          <!-- Rotas nomeadas e v-for com :key -->
+          <router-link v-for="item in menu" :key="item.nome" :to="{ name: item.nome }"
+                       @click="fecharMenu">{{ item.texto }}</router-link>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Contentor onde o Vue Router mostra a vista ativa -->
+    <main>
+      <router-view></router-view>
+    </main>
+
+    <!-- Rodapé com a identidade virtual: presente em todas as vistas -->
+    <footer class="rodape">
+      <ul class="redes">
+        <li v-for="rede in cv.redes" :key="rede.nome">
+          <a :href="rede.url" target="_blank" rel="noopener" :title="rede.nome" :aria-label="rede.nome">
+            <i :class="rede.icone"></i>
+          </a>
+        </li>
+      </ul>
+      <p>© {{ anoAtual }} {{ cv.nome }} · Programação Web Avançada – MEIW</p>
+    </footer>
+
+    <!-- v-show: alterna com frequência ao fazer scroll -->
+    <button v-show="mostrarTopo" class="botao-topo" @click="voltarAoTopo" aria-label="Voltar ao topo">
+      <i class="fa-solid fa-arrow-up"></i>
+    </button>
+  </div>
+
+  <script>
+    // ==========================================================
+    // DADOS DO CURRÍCULO
+    // Todo o conteúdo está aqui.
+    // ==========================================================
+    const cv = {
+      nome: 'José Ernesto Constantino Bule',
+      iniciais: 'JB',
+      corDestaque: '#1f5f4a',
+      foto: 'img/foto.jpg', // fotografia de perfil
+      cargo: 'Técnico de planificação · Estudante do Mestrado em Engenharia Informática e Tecnologia Web',
+      local: 'Matola, Maputo, Moçambique',
+      frase: 'Interesso-me por desenvolvimento Web e por arquiteturas de software que ajudem a levar serviços digitais a quem mais precisa deles.',
+
+      quemSou: {
+        paragrafos: [
+          'Chamo-me José Ernesto Constantino Bule e vivo na Cidade da Matola, Província de Maputo, Moçambique. Sou estudante trabalhador e frequento o Mestrado em Engenharia Informática e Tecnologia Web (MEIW) na Universidade Aberta.',
+          'Na dissertação de mestrado, estou a desenvolver uma arquitetura de microsserviços para a extensão agrária digital. O objetivo é chegar a um protótipo funcional que apoie o trabalho dos serviços de extensão.',
+          'Trabalho no Setor Agrário, concretamente na Direção Provincial da Agricultura e Pescas de Maputo há 16 anos e todos estes anos tenho trabalhado como Planificador, responsável pelas tecnologias de informação, comunicação e imagem, bem como pelas estatísticas da instituição.',
+          'As minhas responsabilidades técnicas fizeram com que me interessasse pela informática e a querer explorar ainda mais esta área para poder contribuir com algumas soluções no meu setor de trabalho.'
+        ],
+        factos: [
+          { rotulo: 'Formação', valor: 'MEIW – Universidade Aberta (em curso)' },
+          { rotulo: 'Profissão', valor: 'Técnico de planificação' },
+          { rotulo: 'Localização', valor: 'Matola, Maputo, Moçambique' },
+          { rotulo: 'Línguas', valor: 'Português, Inglês, Ronga' }
+        ]
+      },
+
+      oQueFaco: [
+        {
+          icone: 'fa-solid fa-diagram-project',
+          titulo: 'Investigação',
+          resumo: 'Dissertação sobre microsserviços aplicados à extensão agrária.',
+          detalhe: [
+            'Tema: Arquitetura de Microsserviços para a Extensão Agrária Digital.',
+            'Objetivo: construir um protótipo funcional e testá-lo de forma rigorosa.',
+            'Áreas envolvidas: arquitetura de software, APIs e interoperabilidade.'
+          ]
+        },
+        {
+          icone: 'fa-solid fa-code',
+          titulo: 'Desenvolvimento Web',
+          resumo: 'Construção de aplicações Web, do front-end ao back-end.',
+          detalhe: [
+            'Front-end: HTML, CSS, JavaScript e Vue.js.',
+            'Back-end: APIs REST e organização do código segundo o padrão MVC.',
+            'Controlo de versões com Git e GitHub.'
+          ]
+        },
+        {
+          icone: 'fa-solid fa-briefcase',
+          titulo: 'Técnico de planificação',
+          resumo: 'Planeamento, coordenação e supervisão das atividades do setor agrário.',
+          detalhe: [
+            'Atualmente, desempenho a função de Chefe do Departamento de Planificação, Estatística Agrária e Pesqueira.',
+            'Coordenação da planificação e da execução das atividades do setor agrário.',
+            'Documentos estratégicos utilizados: planos, relatórios e estatísticas do setor agrário.'
+          ]
+        }
+      ],
+
+      // As imagens são do Unsplash (licença de uso livre); os créditos aparecem na janela modal
+      hobbies: [
+        {
+          icone: 'fa-solid fa-film',
+          imagem: 'img/hobby-animacao.jpg',
+          credito: 'Vitaly Gariev / Unsplash',
+          titulo: 'Assistir filmes e séries animadas',
+          resumo: 'Conecto-me com o mundo da animação e da ficção científica, explorando novas ideias e culturas, e também me aproximo da criançada.',
+          detalhe: ['Desde criança que gosto de acompanhar os filmes de animação. Sempre que tenho tempo disponível, gosto de ver a imaginação sem limites dos criadores destes trabalhos.']
+        },
+        {
+          icone: 'fa-solid fa-person-hiking',
+          imagem: 'img/hobby-passear.jpg',
+          credito: 'Filip Kvasnak / Unsplash',
+          titulo: 'Passear',
+          resumo: 'Gosto de apreciar a natureza e de me conectar com o mundo exterior, explorando novos lugares e experiências.',
+          detalhe: ['Devido à vida agitada que levamos, gosto de passear para relaxar e me conectar com a natureza.']
+        },
+        {
+          icone: 'fa-solid fa-gamepad',
+          imagem: 'img/hobby-jogos.jpg',
+          credito: 'JESHOOTS.COM / Unsplash',
+          titulo: 'Jogar videojogos',
+          resumo: 'Gosto de jogar videojogos, pois permitem-me explorar mundos virtuais e desafiar as minhas capacidades cognitivas e estratégicas.',
+          detalhe: ['Desde criança que gosto de jogar videojogos, sempre que tenho tempo disponível.']
+        }
+      ],
+
+      // Perfis nas redes sociais: GitHub, LinkedIn e E-mail
+      redes: [
+        { nome: 'GitHub', url: 'https://github.com/ernestobule-rgb', icone: 'fa-brands fa-github' },
+        { nome: 'LinkedIn', url: 'https://www.linkedin.com/in/jose-ernesto-c-bule-159701142', icone: 'fa-brands fa-linkedin-in' },
+        { nome: 'E-mail', url: 'mailto:1301242@estudante.uab.pt', icone: 'fa-solid fa-envelope' }
+      ]
+    };
+
+    const { createApp } = Vue;
+    const { createRouter, createWebHashHistory } = VueRouter;
+
+    // ==========================================================
+    // COMPONENTES REUTILIZÁVEIS 
+    // Recebem dados do pai por props e comunicam com o pai
+    // apenas através de eventos ($emit).
+    // Nomes compostos por várias palavras.
+    // ==========================================================
+
+    // Um cartão: mostra um item e avisa o pai quando é clicado
+    const CartaoItem = {
+      // Props com tipo definido
+      props: {
+        item: { type: Object, required: true },
+        indice: { type: Number, required: true }
+      },
+      emits: ['selecionar'],
+      computed: {
+        // Propriedade calculada: 0 → "01", 1 → "02"...
+        numero() {
+          return String(this.indice + 1).padStart(2, '0');
+        }
+      },
+      template: `
+        <button class="cartao" @click="$emit('selecionar', item)">
+          <img v-if="item.imagem" class="imagem" :src="item.imagem" :alt="item.titulo">
+          <span class="cabeca">
+            <span class="icone"><i :class="item.icone"></i></span>
+            <span class="numero">{{ numero }}</span>
+          </span>
+          <h3>{{ item.titulo }}</h3>
+          <p>{{ item.resumo }}</p>
+          <span class="ligacao">Ver detalhe →</span>
+        </button>`
+    };
+
+    // Uma lista de cartões: reencaminha para o pai o item escolhido
+    const ListaCartoes = {
+      props: {
+        titulo: { type: String, required: true },
+        subtitulo: { type: String, default: '' },
+        itens: { type: Array, required: true }
+      },
+      emits: ['selecionar'],
+      template: `
+        <section>
+          <h2 class="titulo">{{ titulo }}</h2>
+          <p class="subtitulo">{{ subtitulo }}</p>
+          <div class="grelha">
+            <!-- v-for com segundo argumento (índice),  -->
+            <cartao-item v-for="(item, indice) in itens" :key="item.titulo"
+                         :item="item" :indice="indice"
+                         @selecionar="$emit('selecionar', $event)"></cartao-item>
+          </div>
+        </section>`
+    };
+
+    // Janela modal com o detalhe de um item
+    const JanelaModal = {
+      props: {
+        item: { type: Object, required: true }
+      },
+      emits: ['fechar'],
+      // Ciclo de vida: depois de montada, a janela recebe o foco
+      mounted() {
+        this.$refs.janela.focus();
+      },
+      // Modificador de evento .self e modificador de tecla .esc
+      template: `
+        <div class="fundo-modal" @click.self="$emit('fechar')">
+          <div class="modal" ref="janela" tabindex="-1" role="dialog" aria-modal="true"
+               :aria-label="item.titulo" @keyup.esc="$emit('fechar')">
+            <button class="fechar" @click="$emit('fechar')" aria-label="Fechar">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="topo">
+              <span class="icone-modal"><i :class="item.icone"></i></span>
+              <h3>{{ item.titulo }}</h3>
+            </div>
+            <p>{{ item.resumo }}</p>
+            <ul>
+              <li v-for="linha in item.detalhe" :key="linha">{{ linha }}</li>
+            </ul>
+             <p v-if="item.credito" class="credito">Fotografia: {{ item.credito }}</p>
+            <div class="acoes">
+              <button class="botao secundario" @click="$emit('fechar')">Fechar</button>
+            </div>
+          </div>
+        </div>`
+    };
+
+    // ==========================================================
+    // VISTAS (uma por secção do currículo)
+    // Cada vista é um componente Vue, mas não precisa de ser registada globalmente.
+    // ==========================================================
+    const PaginaInicio = {
+      data() {
+        return {
+          cv,
+          atalhos: [
+            { nome: 'quem-sou-eu', titulo: 'Quem Sou Eu?', texto: 'Quem sou, onde vivo e o que estou a estudar.', icone: 'fa-solid fa-user' },
+            { nome: 'o-que-faco', titulo: 'O que faço?', texto: 'As minhas áreas de investigação e de trabalho.', icone: 'fa-solid fa-laptop-code' },
+            { nome: 'hobbies', titulo: 'Hobbies', texto: 'O que gosto de fazer no tempo livre.', icone: 'fa-solid fa-heart' }
+          ]
+        };
+      },
+      methods: {
+        // Navegação programática com router.push
+        conhecerMe() {
+          this.$router.push({ name: 'quem-sou-eu' });
+        }
+      },
+      template: `
+        <section>
+          <div class="apresentacao">
+            <!-- Estilo inline com v-bind:style -->
+            <div class="foto" :style="{ backgroundColor: cv.corDestaque }">
+              <!-- Renderização condicional v-if / v-else -->
+              <img v-if="cv.foto" :src="cv.foto" :alt="'Fotografia de ' + cv.nome">
+              <span v-else>{{ cv.iniciais }}</span>
+            </div>
+            <div>
+              <h1>{{ cv.nome }}</h1>
+              <p class="cargo">{{ cv.cargo }}</p>
+              <p class="local"><i class="fa-solid fa-location-dot"></i> {{ cv.local }}</p>
+              <p>{{ cv.frase }}</p>
+              <button class="botao" @click="conhecerMe">Conhecer-me</button>
+            </div>
+          </div>
+
+          <div class="grelha">
+            <router-link v-for="atalho in atalhos" :key="atalho.nome"
+                         :to="{ name: atalho.nome }" class="cartao">
+              <span class="icone"><i :class="atalho.icone"></i></span>
+              <h3>{{ atalho.titulo }}</h3>
+              <p>{{ atalho.texto }}</p>
+              <span class="ligacao">Ver secção →</span>
+            </router-link>
+          </div>
+        </section>`
+    };
+
+    const PaginaQuemSou = {
+      data() {
+        return { cv };
+      },
+      template: `
+        <section>
+          <h2 class="titulo">Quem Sou Eu?</h2>
+          <p class="subtitulo">Uma breve apresentação.</p>
+          <div class="duas-colunas">
+            <div class="texto">
+              <p v-for="(paragrafo, indice) in cv.quemSou.paragrafos" :key="indice">{{ paragrafo }}</p>
+            </div>
+            <aside class="resumo">
+              <h3>Em resumo</h3>
+              <dl>
+                <template v-for="facto in cv.quemSou.factos" :key="facto.rotulo">
+                  <dt>{{ facto.rotulo }}</dt>
+                  <dd>{{ facto.valor }}</dd>
+                </template>
+              </dl>
+            </aside>
+          </div>
+        </section>`
+    };
+
+    const PaginaOQueFaco = {
+      // Registo local de componente 
+      components: { JanelaModal },
+      data() {
+        return { cv, itemSelecionado: null };
+      },
+      methods: {
+        abrirDetalhe(item) { this.itemSelecionado = item; },
+        fecharDetalhe() { this.itemSelecionado = null; }
+      },
+      template: `
+        <div>
+          <lista-cartoes titulo="O que faço?" subtitulo="Clique numa área para ver mais detalhes."
+                         :itens="cv.oQueFaco" @selecionar="abrirDetalhe"></lista-cartoes>
+          <transition name="aparecer">
+            <janela-modal v-if="itemSelecionado" :item="itemSelecionado" @fechar="fecharDetalhe"></janela-modal>
+          </transition>
+        </div>`
+    };
+
+    const PaginaHobbies = {
+      components: { JanelaModal },
+      data() {
+        return { cv, itemSelecionado: null };
+      },
+      methods: {
+        abrirDetalhe(item) { this.itemSelecionado = item; },
+        fecharDetalhe() { this.itemSelecionado = null; }
+      },
+      template: `
+        <div>
+          <lista-cartoes titulo="Hobbies" subtitulo="Clique num hobby para saber mais."
+                         :itens="cv.hobbies" @selecionar="abrirDetalhe"></lista-cartoes>
+          <transition name="aparecer">
+            <janela-modal v-if="itemSelecionado" :item="itemSelecionado" @fechar="fecharDetalhe"></janela-modal>
+          </transition>
+        </div>`
+    };
+
+    // ==========================================================
+    // ROTEADOR
+    // Modo hash: index.html#/quem-sou-eu
+    // ==========================================================
+    const router = createRouter({
+      history: createWebHashHistory(),
+      routes: [
+        { path: '/', name: 'inicio', component: PaginaInicio, meta: { titulo: 'Início' } },
+        { path: '/quem-sou-eu', name: 'quem-sou-eu', component: PaginaQuemSou, meta: { titulo: 'Quem Sou Eu?' } },
+        { path: '/o-que-faco', name: 'o-que-faco', component: PaginaOQueFaco, meta: { titulo: 'O que faço?' } },
+        { path: '/hobbies', name: 'hobbies', component: PaginaHobbies, meta: { titulo: 'Hobbies' } },
+        // Redirecionamento de rotas desconhecidas para o Início
+        { path: '/:pathMatch(.*)*', redirect: { name: 'inicio' } }
+      ],
+      scrollBehavior() {
+        return { top: 0 };
+      }
+    });
+
+    // Atualiza o título do separador sempre que a rota muda
+    router.afterEach((destino) => {
+      document.title = `${destino.meta.titulo} – Currículo`;
+    });
+
+    // ==========================================================
+    // INSTÂNCIA PRINCIPAL 
+    // ==========================================================
+    const app = createApp({
+      data() {
+        return {
+          cv,
+          menuAberto: false,
+          mostrarTopo: false,
+          menu: [
+            { nome: 'inicio', texto: 'Início' },
+            { nome: 'quem-sou-eu', texto: 'Quem Sou Eu?' },
+            { nome: 'o-que-faco', texto: 'O que faço?' },
+            { nome: 'hobbies', texto: 'Hobbies' }
+          ]
+        };
+      },
+      // Propriedades calculadas
+      computed: {
+        nomeCurto() {
+          const partes = this.cv.nome.split(' ');
+          return `${partes[0]} ${partes[partes.length - 1]}`;
+        },
+        anoAtual() {
+          return new Date().getFullYear();
+        }
+      },
+      methods: {
+        alternarMenu() { this.menuAberto = !this.menuAberto; },
+        fecharMenu() { this.menuAberto = false; },
+        verificarScroll() { this.mostrarTopo = window.scrollY > 300; },
+        voltarAoTopo() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      },
+      // Funções do ciclo de vida
+      mounted() {
+        window.addEventListener('scroll', this.verificarScroll);
+      },
+      beforeUnmount() {
+        window.removeEventListener('scroll', this.verificarScroll);
+      }
+    });
+
+    // Registo global de componentes
+    app.component('ListaCartoes', ListaCartoes);
+    app.component('CartaoItem', CartaoItem);
+
+    app.use(router);
+    app.mount('#app');
+  </script>
+</body>
+</html>
